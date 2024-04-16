@@ -10,11 +10,8 @@ import { transporter } from "../utilities/emailsender";
 import type { AuthRequest, RequestWithUserId } from "../../extender";
 
 dotenv.config();
-
-// const frontEndUrl = process.env.FRONTEND_URL;
-
 const secret: any = process.env.JWT_SECRET;
-// Create a User
+
 export const createUser = async (req: AuthRequest, res: Response) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
@@ -75,20 +72,20 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 
         const mailOptions = {
           from: {
-            name: "Skool LMS",
+            name: "STASH NGR",
             address: "info.skool.lms@gmail.com",
           },
           to: email,
-          subject: "Skool LMS - Email Verification",
+          subject: "STASH NGR - Email Verification",
           text: `TOTP: ${user.otp}`,
           html: `<h3>Hi there,
-        Thank you for signing up to Skool LMS. Copy the OTP below to verify your email:</h3>
+        Thank you for signing up to STASH NGR. Copy the OTP below to verify your email:</h3>
         <h1>${user.otp}</h1>
         <h3>This OTP will expire in 10 minutes. If you did not sign up for a Skool LMS account,
         you can safely ignore this email. <br>
         <br>
         Best, <br>
-        The Skool LMS Team</h3>`,
+        The STASH NGR Team</h3>`,
         };
         await transporter.sendMail(mailOptions);
         res.json({ successfulSignup: "Student signup successful" });
@@ -101,8 +98,6 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 };
 
 export const loginUser = async (req: AuthRequest, res: Response) => {
-  console.log("request received-login starting.....");
-
   try {
     const userRepository = AppDataSource.getRepository(User);
 
@@ -176,11 +171,9 @@ export const verifyOTPEmailAuth = async (
       return;
     }
 
-    // Clear the OTP from the user record
     user.otp = "";
     user.otpExpiration = new Date(0);
 
-    // Add the isVerified property to the user object
     user.isVerified = true;
     await userRepository.save(user);
 
@@ -205,14 +198,12 @@ export const getTransactionsByUserId = async (
       order: { Date: "DESC" },
     });
 
-    // Check if any transactions were found
     if (transactions.length === 0) {
       return res
         .status(404)
         .json({ message: "No transactions found for the user" });
     }
 
-    // Return the transactions in the response
     return res.status(200).json({ transactions });
   } catch (error) {
     console.error("Error retrieving transactions:", error);
@@ -255,7 +246,6 @@ export const addTransaction = async (req: RequestWithUserId, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Calculate the new balance based on transaction type
     let newBalance = user.balance || 0;
     if (type === "income") {
       newBalance += amount;
@@ -263,7 +253,6 @@ export const addTransaction = async (req: RequestWithUserId, res: Response) => {
       newBalance -= amount;
     }
 
-    // Create a new transaction entity
     const transactionRepository = AppDataSource.getRepository(Transaction);
     const newTransaction = transactionRepository.create({
       userId,
@@ -272,7 +261,6 @@ export const addTransaction = async (req: RequestWithUserId, res: Response) => {
       amount,
     });
 
-    // Save the transaction and update user's balance
     await AppDataSource.transaction(async (entityManager) => {
       await entityManager.save(newTransaction);
       user.balance = newBalance;
@@ -286,6 +274,27 @@ export const addTransaction = async (req: RequestWithUserId, res: Response) => {
     });
   } catch (error) {
     console.error("Error adding transaction:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// get user balance
+export const getUserBalance = async (req: RequestWithUserId, res: Response) => {
+  try {
+    const userId = req.userId;
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({
+      where: { id: userId as string },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "Succefully retrieved User Account Balance", balance: user.balance });
+  } catch (error) {
+    console.error("Error retrieving user balance:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

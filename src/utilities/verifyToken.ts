@@ -36,8 +36,6 @@ export async function checkAndVerifyToken(
           userId: userInfo.id,
         };
         req.userId = userInfo.id;
-
-        // res.json({ user });
       }
     }
     next();
