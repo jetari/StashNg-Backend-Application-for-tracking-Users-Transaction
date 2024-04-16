@@ -17,9 +17,9 @@ GMAIL_SMP_PASSWORD=hhqtivfbsyoewbik
 
 
 # run the following commands on the project terminal
-run `yarn` or `npm install`
+run `yarn` or `npm install` to install project dependencies
 `yarn tsc--watch` (build/compile) watch mode
-`yarn dev` | `npm run dev`
+`yarn dev` | `npm run dev` to start the app
 
 # API DOCUMENTATION
 
