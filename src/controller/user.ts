@@ -88,7 +88,7 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         The STASH NGR Team</h3>`,
         };
         await transporter.sendMail(mailOptions);
-        res.json({ successfulSignup: "Student signup successful" });
+        res.json({ successfulSignup: "User signup successful check your email to comfirm otp" });
       }
     }
   } catch (error) {
