@@ -34,6 +34,9 @@ export class User {
   countryOfResidence: string;
   courses: any;
 
+  @Column({ default: 0 })
+  balance!: number;
+
   @Column({ nullable: true, default: null })
   otp: string;
 

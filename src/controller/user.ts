@@ -7,8 +7,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import speakeasy from "speakeasy";
 import { transporter } from "../utilities/emailsender";
-import type { AuthRequest } from "../../extender";
-import { RequestWithUserId } from "../../extender";
+import type { AuthRequest, RequestWithUserId } from "../../extender";
 
 dotenv.config();
 
@@ -192,35 +191,98 @@ export const verifyOTPEmailAuth = async (
   }
 };
 
+export const getTransactionsByUserId = async (
+  req: RequestWithUserId,
+  res: Response
+) => {
+  try {
+    const userId = req.params.userId;
+
+    // Retrieve transactions for the specified user from the database
+    const transactionRepository = AppDataSource.getRepository(Transaction);
+    const transactions = await transactionRepository.find({
+      where: { userId },
+      order: { Date: "DESC" },
+    });
+
+    // Check if any transactions were found
+    if (transactions.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No transactions found for the user" });
+    }
+
+    // Return the transactions in the response
+    return res.status(200).json({ transactions });
+  } catch (error) {
+    console.error("Error retrieving transactions:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const addTransaction = async (req: RequestWithUserId, res: Response) => {
   try {
     const { amount, description, type } = req.body;
 
-    // Check if all required fields are provided
     if (!amount || !description || !type) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Retrieve the logged-in user ID from the request object
-    console.log("req.user", req);
+    if (typeof amount !== "number") {
+      return res
+        .status(400)
+        .json({ message: "Amount must be a number" });
+    }
+    if (typeof description !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Description must be a string" });
+    }
+    if (type !== "income" && type !== "expense") {
+      return res
+        .status(400)
+        .json({ message: 'Transaction Type must be either "income" or "expense"' });
+    }
 
     const userId = req.userId;
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({
+      where: { id: userId as string },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Calculate the new balance based on transaction type
+    let newBalance = user.balance || 0;
+    if (type === "income") {
+      newBalance += amount;
+    } else if (type === "expense") {
+      newBalance -= amount;
+    }
 
     // Create a new transaction entity
     const transactionRepository = AppDataSource.getRepository(Transaction);
     const newTransaction = transactionRepository.create({
-      amount,
-      description,
+      userId,
       type,
-      userId, // Assign the logged-in user ID to the transaction
+      description,
+      amount,
     });
 
-    // Save the transaction to the database
-    await transactionRepository.save(newTransaction);
+    // Save the transaction and update user's balance
+    await AppDataSource.transaction(async (entityManager) => {
+      await entityManager.save(newTransaction);
+      user.balance = newBalance;
+      await entityManager.save(user);
+    });
 
     return res.status(201).json({
       message: "Transaction created successfully",
       transaction: newTransaction,
+      Balance: newBalance,
     });
   } catch (error) {
     console.error("Error adding transaction:", error);

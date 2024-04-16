@@ -4,10 +4,13 @@ import {
   loginUser,
   verifyOTPEmailAuth,
   addTransaction,
+  getTransactionsByUserId,
 } from "../controller/user";
 import { checkAndVerifyToken } from "../utilities/verifyToken";
 
 const router = Router();
+
+router.get("/transactions/:userId", getTransactionsByUserId);
 
 router.post("/register", createUser);
 router.post("/login", loginUser);

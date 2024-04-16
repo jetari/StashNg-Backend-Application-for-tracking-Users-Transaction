@@ -7,5 +7,5 @@ export interface AuthRequest extends Request {
 }
 
 export interface RequestWithUserId extends Request {
-  userId: string;
+  userId?: string;
 }

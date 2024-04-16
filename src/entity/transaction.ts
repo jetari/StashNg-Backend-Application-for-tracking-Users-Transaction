@@ -9,7 +9,7 @@ import { User } from "./user";
 
 @Entity()
 export class Transaction {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id!: number;
 
   @Column({ type: "numeric" })
@@ -22,7 +22,7 @@ export class Transaction {
   type!: "income" | "expense";
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-  date!: Date;
+  Date!: Date;
 
   @Column()
   userId!: string;
