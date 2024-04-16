@@ -17,9 +17,9 @@ GMAIL_SMP_PASSWORD=hhqtivfbsyoewbik
 
 
 # run the following commands on the project terminal
-run yarn or npm install
-yarn tsc--watch (build/compile) watch mode
-yarn dev | npm run dev
+run `yarn` or `npm install`
+`yarn tsc--watch` (build/compile) watch mode
+`yarn dev` | `npm run dev`
 
 # API DOCUMENTATION
 
@@ -355,13 +355,3 @@ Example Response (Internal Server Error - HTTP status code 500):
 {
   "message": "Internal server error"
 }
-
-
-
-
-
-
-
-
-
-
